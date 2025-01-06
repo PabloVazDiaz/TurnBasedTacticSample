@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Movement : MonoBehaviour
+public class Unit : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 4f;
     [SerializeField] float rotationSpeed = 10f;
@@ -13,12 +13,12 @@ public class Movement : MonoBehaviour
     private void Awake()
     {
         UnitAnimator = GetComponentInChildren<Animator>();
+        targetPosition = transform.position;
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-            Move(MouseWorld.GetMousePosition());
+        
         if (Vector3.Distance(transform.position, targetPosition) < stoppingDistance)
         {
             UnitAnimator.SetBool("IsWalking", false);
@@ -33,7 +33,7 @@ public class Movement : MonoBehaviour
         transform.forward = Vector3.Lerp(transform.forward, moveDirection, Time.deltaTime * rotationSpeed);
     }
 
-    private void Move(Vector3 targetPosition)
+    public void Move(Vector3 targetPosition)
     {
         this.targetPosition = targetPosition;
     }
