@@ -11,6 +11,8 @@ public class UnitActionSystem : MonoBehaviour
     [SerializeField] private Unit selectedUnit;
     [SerializeField] private LayerMask unitPlaneMask;
 
+    private BaseAction selectedAction;
+    private bool isBusy;
 
     private void Awake()
     {
@@ -23,14 +25,15 @@ public class UnitActionSystem : MonoBehaviour
     }
     void Update()
     {
+        if (isBusy)
+            return;
+
         if (Input.GetMouseButtonDown(0))
         {
-
+            
             if (!HandleUnitSelection())
             {
-                GridPosition mouseGridPosition = LevelGrid.Instance.GetGridPosition(MouseWorld.GetMousePosition());
-                if (selectedUnit.GetMoveAction().IsValidActionGridPosition(mouseGridPosition)) 
-                    selectedUnit.GetMoveAction().Move(mouseGridPosition);
+                HandleSelectedAction();
             }
         }
     }
@@ -38,7 +41,7 @@ public class UnitActionSystem : MonoBehaviour
     private bool HandleUnitSelection()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if(Physics.Raycast(ray, out RaycastHit hit, float.MaxValue, unitPlaneMask))
+        if (Physics.Raycast(ray, out RaycastHit hit, float.MaxValue, unitPlaneMask))
         {
             if (hit.transform.TryGetComponent<Unit>(out Unit unit))
             {
@@ -47,6 +50,39 @@ public class UnitActionSystem : MonoBehaviour
             }
         }
         return false;
+    }
+
+    private void HandleSelectedAction()
+    {
+        switch (selectedAction)
+        {
+            case MoveAction moveAction:
+                {
+                    GridPosition mouseGridPosition = LevelGrid.Instance.GetGridPosition(MouseWorld.GetMousePosition());
+                    if (selectedUnit.GetAction<MoveAction>().IsValidActionGridPosition(mouseGridPosition))
+                    {
+                        selectedUnit.GetAction<MoveAction>().Move(mouseGridPosition, ClearBusy);
+                        SetBusy();
+                    }
+                    break;
+                }
+        }
+        
+    }
+
+    private void SetBusy()
+    {
+        isBusy = true;
+    }
+
+    private void ClearBusy()
+    {
+        isBusy = false;
+    }
+
+    public void SetSelectedAction(BaseAction selectedAction)
+    {
+        this.selectedAction = selectedAction;
     }
 
     private void SetSelectedUnit(Unit unit)

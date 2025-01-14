@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,9 +8,11 @@ public class Unit : MonoBehaviour
     
     private GridPosition gridPosition;
     private MoveAction moveAction;
+    private BaseAction[] baseActionArray;
     private void Awake()
     {
         moveAction = GetComponent<MoveAction>();
+        baseActionArray = GetComponents<BaseAction>();
     }
 
     private void Start()
@@ -29,11 +32,12 @@ public class Unit : MonoBehaviour
         }
     }
 
-    public MoveAction GetMoveAction()
-    {
-        return moveAction;
-    }
+    public T GetAction<T>() where T:BaseAction => baseActionArray.First(x => x.GetType() == typeof(T)) as T;
+    public BaseAction GetAction( BaseAction baseAction) => baseActionArray.First(x => x.GetType() == baseAction.GetType());
+
+    public BaseAction[] GetBaseActionArray() => baseActionArray;
     
+
     public GridPosition GetGridPosition()
     {
         return gridPosition;

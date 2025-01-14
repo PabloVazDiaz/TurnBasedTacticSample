@@ -1,30 +1,36 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoveAction : MonoBehaviour
+public class MoveAction : BaseAction
 {
 
     private Vector3 targetPosition;
     private Animator UnitAnimator;
-    private Unit unit;
+    private Action onMoveCompleted;
 
     [SerializeField] float moveSpeed = 4f;
     [SerializeField] float rotationSpeed = 10f;
     [SerializeField] float stoppingDistance = 0.1f;
     [SerializeField] int  maxMoveDistance = 4;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         targetPosition = transform.position;
         UnitAnimator = GetComponentInChildren<Animator>();
-        unit = GetComponent<Unit>();
     }
     private void Update()
     {
+        if (!isActive)
+            return;
+
         if (Vector3.Distance(transform.position, targetPosition) < stoppingDistance)
         {
             UnitAnimator.SetBool("IsWalking", false);
+            isActive = false;
+            CompleteAction(onMoveCompleted);
             return;
         }
 
@@ -35,9 +41,17 @@ public class MoveAction : MonoBehaviour
 
         transform.forward = Vector3.Lerp(transform.forward, moveDirection, Time.deltaTime * rotationSpeed);
     }
-    public void Move(GridPosition gridPosition)
+
+    public override void ExecuteAction()
+    {
+        GridSystemVisual.Instance.UpdateGridVisual();
+    }
+    public void Move(GridPosition gridPosition, Action onMoveCompleted)
     {
         this.targetPosition = LevelGrid.Instance.GetWorldPosition(gridPosition);
+        isActive = true;
+        this.onMoveCompleted = onMoveCompleted;
+        GridSystemVisual.Instance.HideAllGridPosition();
     }
 
     public List<GridPosition> GetValidActionGridPositionList()
@@ -67,4 +81,11 @@ public class MoveAction : MonoBehaviour
         List<GridPosition> validGridPositionList = GetValidActionGridPositionList();
         return validGridPositionList.Contains(gridPosition);
     }
+
+    public override string GetActionName()
+    {
+        return "Move";
+    }
+
+    
 }
