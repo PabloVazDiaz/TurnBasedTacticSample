@@ -54,7 +54,7 @@ public class MoveAction : BaseAction
         GridSystemVisual.Instance.HideAllGridPosition();
     }
 
-    public List<GridPosition> GetValidActionGridPositionList()
+    public override List<GridPosition> GetValidActionGridPositionList()
     {
         List<GridPosition> validGridPositions = new();
 
@@ -76,11 +76,7 @@ public class MoveAction : BaseAction
         return validGridPositions;
     }
 
-    public bool IsValidActionGridPosition(GridPosition gridPosition)
-    {
-        List<GridPosition> validGridPositionList = GetValidActionGridPositionList();
-        return validGridPositionList.Contains(gridPosition);
-    }
+    
 
     public override string GetActionName()
     {

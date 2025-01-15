@@ -2,12 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class UnitActionSystem : MonoBehaviour
 {
     public static UnitActionSystem Instance { get; private set; }
 
     public event EventHandler OnSelectedUnitChanged;
+    public event EventHandler OnSelectedActionChanged;
+    public delegate void OnBusyChanged(bool isBusy);
+    public OnBusyChanged onBusyChanged;
     [SerializeField] private Unit selectedUnit;
     [SerializeField] private LayerMask unitPlaneMask;
 
@@ -27,6 +31,8 @@ public class UnitActionSystem : MonoBehaviour
     {
         if (isBusy)
             return;
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -45,6 +51,11 @@ public class UnitActionSystem : MonoBehaviour
         {
             if (hit.transform.TryGetComponent<Unit>(out Unit unit))
             {
+                if(unit == selectedUnit)
+                {
+                    //Unit already selected
+                    return false;
+                }
                 SetSelectedUnit(unit);
                 return true;
             }
@@ -59,7 +70,7 @@ public class UnitActionSystem : MonoBehaviour
             case MoveAction moveAction:
                 {
                     GridPosition mouseGridPosition = LevelGrid.Instance.GetGridPosition(MouseWorld.GetMousePosition());
-                    if (selectedUnit.GetAction<MoveAction>().IsValidActionGridPosition(mouseGridPosition))
+                    if (selectedAction.IsValidActionGridPosition(mouseGridPosition))
                     {
                         selectedUnit.GetAction<MoveAction>().Move(mouseGridPosition, ClearBusy);
                         SetBusy();
@@ -73,16 +84,19 @@ public class UnitActionSystem : MonoBehaviour
     private void SetBusy()
     {
         isBusy = true;
+        onBusyChanged(true);
     }
 
     private void ClearBusy()
     {
         isBusy = false;
+        onBusyChanged(false);
     }
 
     public void SetSelectedAction(BaseAction selectedAction)
     {
         this.selectedAction = selectedAction;
+        OnSelectedActionChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void SetSelectedUnit(Unit unit)
@@ -95,4 +109,6 @@ public class UnitActionSystem : MonoBehaviour
     {
         return selectedUnit;
     }
+
+    public BaseAction GetSelectedAction() => selectedAction;
 }

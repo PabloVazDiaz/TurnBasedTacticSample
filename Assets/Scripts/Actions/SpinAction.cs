@@ -17,6 +17,11 @@ public class SpinAction : BaseAction
         return "Spin";
     }
 
+    public override List<GridPosition> GetValidActionGridPositionList()
+    {
+        return null;
+    }
+
     public void Spin()
     {
     }
